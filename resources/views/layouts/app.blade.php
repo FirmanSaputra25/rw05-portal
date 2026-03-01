@@ -486,66 +486,72 @@
         }
 
         /* Mobile Bottom Nav - Rock Solid Fixed Position */
-        .mobile-bottom-nav {
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 70px !important;
-            background: #ffffff !important;
-            display: flex !important;
-            flex-direction: row !important;
-            align-items: stretch !important;
-            justify-content: space-around !important;
-            margin: 0 !important;
-            padding: 0 5px env(safe-area-inset-bottom) 5px !important;
-            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12) !important;
-            z-index: 99999 !important;
-            border-top: 1px solid #e2e8f0 !important;
-            box-sizing: border-box !important;
-            overflow: hidden !important;
-        }
-
-        .mobile-bottom-nav a {
-            color: #64748b !important;
-            text-decoration: none !important;
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-            font-size: 10px !important;
-            font-weight: 700 !important;
-            flex: 1 !important;
-            min-width: 0 !important;
-            height: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            border: none !important;
-        }
-
-        .mobile-bottom-nav a i {
-            font-size: 22px !important;
-            margin-bottom: 2px !important;
-            line-height: 1 !important;
-        }
-
-        .mobile-bottom-nav a.active {
-            color: var(--bs-primary) !important;
-        }
-
-        .mobile-bottom-nav a span {
-            display: block !important;
-            width: 100% !important;
-            text-align: center !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
-        }
-
-        /* Responsive Body Padding - Prevent content being hidden behind nav */
         @media (max-width: 991px) {
+            .mobile-bottom-nav {
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: 70px !important;
+                background: #ffffff !important;
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: stretch !important;
+                justify-content: space-around !important;
+                margin: 0 !important;
+                padding: 0 5px env(safe-area-inset-bottom) 5px !important;
+                box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12) !important;
+                z-index: 99999 !important;
+                border-top: 1px solid #e2e8f0 !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+            }
+
+            .mobile-bottom-nav a {
+                color: #64748b !important;
+                text-decoration: none !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 10px !important;
+                font-weight: 700 !important;
+                flex: 1 !important;
+                min-width: 0 !important;
+                height: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+            }
+
+            .mobile-bottom-nav a i {
+                font-size: 22px !important;
+                margin-bottom: 2px !important;
+                line-height: 1 !important;
+            }
+
+            .mobile-bottom-nav a.active {
+                color: var(--bs-primary) !important;
+            }
+
+            .mobile-bottom-nav a span {
+                display: block !important;
+                width: 100% !important;
+                text-align: center !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                white-space: nowrap !important;
+            }
+
             body {
                 padding-bottom: 75px !important; 
+            }
+        }
+
+        /* Desktop specific: Hide the mobile nav container always */
+        @media (min-width: 992px) {
+            .mobile-bottom-nav {
+                display: none !important;
             }
         }
         
