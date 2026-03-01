@@ -1,0 +1,6 @@
+/* Hilangkan baris ini karena kamu tidak pakai tailwind */
+/* @import "tailwindcss"; */
+
+@import "bootstrap/dist/css/bootstrap.min.css";
+
+/* Jangan pakai @source dan @theme di sini */
