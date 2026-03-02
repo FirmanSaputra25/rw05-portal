@@ -14,24 +14,39 @@ class PublicController extends Controller
 {
     public function newsIndex()
     {
-        $news = News::latest()->paginate(5);
+        $localNewsRaw = News::latest()->get();
+        $localNews = $localNewsRaw->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'title' => $item->title,
+                'content' => $item->content,
+                'author' => $item->author ?? 'Admin',
+                'image' => $item->image ? asset('storage/' . $item->image) : 'https://source.unsplash.com/600x400/?community,news&random=' . $item->id,
+                'created_at' => $item->created_at,
+                'type' => 'local',
+                'link' => route('news.detail', $item->id),
+                'badge' => 'WARGA'
+            ];
+        });
 
-        // Logika Sangat Cepat: Jangan biarkan API melambatkan loading web!
-        $nationalNews = Cache::remember('national_news_direct_antara', 3600, function () {
+        $nationalNews = Cache::remember('national_news_merged', 3600, function () {
             try {
-                // Timeout di-set HANYA 3 detik. Kalau lebih dari 3 detik tidak berhasil, yaudah kosongi aja.
                 $response = Http::timeout(3)->get('https://www.antaranews.com/rss/top-news.xml');
                 if ($response->successful()) {
                     $xml = simplexml_load_string($response->body(), 'SimpleXMLElement', LIBXML_NOCDATA);
                     $items = [];
                     foreach ($xml->channel->item as $item) {
                         $items[] = [
+                            'id' => null,
                             'title' => (string)$item->title,
+                            'content' => strip_tags((string)$item->description),
+                            'author' => 'Antara News',
+                            'image' => (string)($item->enclosure['url'] ?? 'https://via.placeholder.com/600x400?text=Antara+News'),
+                            'created_at' => \Carbon\Carbon::parse((string)$item->pubDate),
+                            'type' => 'national',
                             'link' => (string)$item->link,
-                            'pubDate' => (string)$item->pubDate,
-                            'thumbnail' => (string)($item->enclosure['url'] ?? 'https://via.placeholder.com/400x200?text=Antara+News'),
+                            'badge' => 'NASIONAL'
                         ];
-                        if (count($items) >= 6) break;
                     }
                     return $items;
                 }
@@ -39,12 +54,24 @@ class PublicController extends Controller
             return [];
         });
 
-        // Ambil max 2 agenda terdekat dari tabel events
-        $announcements = Event::orderBy('date', 'asc')
-            ->take(2)
-            ->get();
+        // Merge and Sort by date
+        $allNewsCollection = collect($localNews)->merge($nationalNews)->sortByDesc('created_at');
+
+        // Paginate manually
+        $currentPage = request()->get('page', 1);
+        $perPage = 10;
+        $pagedData = $allNewsCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+        
+        $news = new \Illuminate\Pagination\LengthAwarePaginator(
+            $pagedData,
+            $allNewsCollection->count(),
+            $perPage,
+            $currentPage,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        $announcements = Event::orderBy('date', 'asc')->take(2)->get();
             
-        // Ambil Jadwal Posyandu (Cari yang mendatang, kalau gak ada ambil yang paling baru diinput)
         $nextPosyandu = Schedule::where('type', 'posyandu')
             ->where('date', '>=', now()->toDateString())
             ->orderBy('date', 'asc')
@@ -56,7 +83,12 @@ class PublicController extends Controller
                 ->first();
         }
 
-        return view('public.news-index', compact('news', 'announcements', 'nationalNews', 'nextPosyandu'));
+        return view('public.news-index', [
+            'news' => $news,
+            'allNews' => $allNewsCollection, // Pass the full collection for banner/ticker filters
+            'announcements' => $announcements,
+            'nextPosyandu' => $nextPosyandu
+        ]);
     }
 
     public function newsDetail($id)
