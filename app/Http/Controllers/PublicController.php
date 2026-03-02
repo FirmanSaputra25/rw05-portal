@@ -29,30 +29,46 @@ class PublicController extends Controller
             ];
         });
 
-        $nationalNews = Cache::remember('national_news_merged', 3600, function () {
+        $nationalNews = Cache::get('national_news_v3');
+        
+        if (!$nationalNews) {
             try {
-                $response = Http::timeout(3)->get('https://www.antaranews.com/rss/top-news.xml');
+                // Selesaikan pengambilan data dalam 5 detik agar tidak menghambat load page
+                $response = Http::timeout(5)->get('https://www.antaranews.com/rss/top-news.xml');
                 if ($response->successful()) {
-                    $xml = simplexml_load_string($response->body(), 'SimpleXMLElement', LIBXML_NOCDATA);
-                    $items = [];
-                    foreach ($xml->channel->item as $item) {
-                        $items[] = [
-                            'id' => null,
-                            'title' => (string)$item->title,
-                            'content' => strip_tags((string)$item->description),
-                            'author' => 'Antara News',
-                            'image' => (string)($item->enclosure['url'] ?? 'https://via.placeholder.com/600x400?text=Antara+News'),
-                            'created_at' => \Carbon\Carbon::parse((string)$item->pubDate),
-                            'type' => 'national',
-                            'link' => (string)$item->link,
-                            'badge' => 'NASIONAL'
-                        ];
+                    $xml = @simplexml_load_string($response->body(), 'SimpleXMLElement', LIBXML_NOCDATA);
+                    if ($xml) {
+                        $items = [];
+                        foreach ($xml->channel->item as $item) {
+                            // Coba beberapa cara untuk ambil gambar RSS
+                            $imgUrl = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=800';
+                            if (isset($item->enclosure)) {
+                                $imgUrl = (string)$item->enclosure['url'];
+                            }
+                            
+                            $items[] = [
+                                'id' => null,
+                                'title' => (string)$item->title,
+                                'content' => strip_tags((string)$item->description),
+                                'author' => 'Antara News',
+                                'image' => $imgUrl,
+                                'created_at' => \Carbon\Carbon::parse((string)$item->pubDate),
+                                'type' => 'national',
+                                'link' => (string)$item->link,
+                                'badge' => 'NASIONAL'
+                            ];
+                        }
+                        $nationalNews = $items;
+                        // Simpan di cache selama 10 menit saja agar berita tetap segar
+                        Cache::put('national_news_v3', $nationalNews, 600);
                     }
-                    return $items;
                 }
-            } catch (\Exception $e) {}
-            return [];
-        });
+            } catch (\Exception $e) {
+                \Log::warning("Gagal ambil berita nasional: " . $e->getMessage());
+            }
+        }
+        
+        $nationalNews = $nationalNews ?? [];
 
         // Merge and Sort by date
         $allNewsCollection = collect($localNews)->merge($nationalNews)->sortByDesc('created_at');

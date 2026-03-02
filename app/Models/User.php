@@ -7,8 +7,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+
+class User extends Authenticatable implements FilamentUser
 {
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Izinkan semua user yang punya email gmail.com (Atau ganti jadi true untuk semua)
+        return str_ends_with($this->email, '@gmail.com');
+    }
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 

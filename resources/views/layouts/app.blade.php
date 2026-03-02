@@ -640,7 +640,7 @@
         </div>
     </nav>
 
-    <main class="container mb-5 animate-fade-in">
+    <main class="container mb-5">
         @yield('content')
     </main>
 
@@ -669,7 +669,7 @@
             </div>
             <hr class="opacity-10">
             <div class="text-center text-muted small pt-2">
-                <p class="mb-0 fw-medium">&copy; {{ date('Y') }} Portal RW 05. Dikelola oleh Pengurus & Karang Taruna.</p>
+                <p class="mb-0 fw-medium">&copy; {{ date('Y') }} Portal RW 05. Dikelola oleh Pengurus RW 05.</p>
             </div>
         </div>
     </footer>
